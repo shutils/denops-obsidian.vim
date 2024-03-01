@@ -12,6 +12,12 @@ https://github.com/vim-denops/denops.vim
 
 https://obsidian.md/
 
+## Optional
+
+### Obsidian Advanced URI (obsidian community plugin)
+
+https://vinzent03.github.io/obsidian-advanced-uri/
+
 ## Configuration
 
 ```vim
@@ -28,6 +34,11 @@ let g:denops_obsidian_cmd = 'obsidian'
 
 Open the current buffer in obsidian.
 Executes only when opening a file in the vault.
+
+### SyncObsidian (powerd by Obsidian Advanced URI)
+
+Synchronizes the line number of the currently open buffer and the obsidan line number.
+If you want to use this feature, please install `Obsidian Advanced URI` in your vault.
 
 ## Similar plugins
 
