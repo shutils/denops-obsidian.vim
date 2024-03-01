@@ -32,12 +32,12 @@ Use the directory where the `.obsidian` directory exists as the vault path.
 
 ## Commands
 
-### OpenObsidian
+### ObsidianOpen
 
 Open the current buffer in obsidian.
 Executes only when opening a file in the vault.
 
-### SyncObsidian (powerd by Obsidian Advanced URI)
+### ObsidianSync (powerd by Obsidian Advanced URI)
 
 Synchronizes the line number of the currently open buffer and the obsidan line number.
 If you want to use this feature, please install `Obsidian Advanced URI` in your vault.
