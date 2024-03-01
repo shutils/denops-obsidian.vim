@@ -12,6 +12,9 @@ Interface			|denops-obsidian-vim-interface|
 Command				|denops-obsidian-vim-command|
 	ObsidianOpen		|denops-obsidian-vim-ObsidianOpen|
 	ObsidianSync		|denops-obsidian-vim-ObsidianSync|
+	ObsidianToday		|denops-obsidian-vim-ObsidianOpen|
+	ObsidianTomorrow	|denops-obsidian-vim-ObsidianTomorrow|
+	ObsidianYesterday	|denops-obsidian-vim-ObsidianYesterday|
 
 
 ==============================================================================
@@ -36,16 +39,35 @@ INTERFACE                                      *denops-obsidian-vim-interface*
 VARIABLES                                      *denops-obsidian-vim-variables*
 
                                                        *g:denops_obsidian_cmd*
-g:denops_obsidian_cmd		(string)
+g:denops_obsidian_cmd			(string)
 	Set this variable to a valid obsidian executable name.
 
 	Default: "obsidian"
 
 
+                                            *g:denops_obsidian_daily_note_dir*
+g:denops_obsidian_daily_note_dir	(string)
+	Set the storage directory for your daily notes.
+	NOTE:
+	
+	Must be set when using |ObsidianToday|, |ObsidianTomorrow|, and
+	|ObsidianYesterday|.
+
+	Default: v:null
+
+
+                                         *g:denops_obsidian_daily_note_format*
+g:denops_obsidian_daily_note_format	(string)
+	Set the file name format for your daily notes.
+
+	Default: "yyyy-MM-dd"
+
+
 ==============================================================================
 COMMANDS                                         *denops-obsidian-vim-command*
 
-ObsidianOpen                                *denops-obsidian-vim-ObsidianOpen*
+                                            *denops-obsidian-vim-ObsidianOpen*
+ObsidianOpen
 
 Open the current buffer in obsidian.
 NOTE:
@@ -55,13 +77,38 @@ directory. Use the directory where the .obsidian directory exists as the
 vault path.
 
 
-ObsidianSync                                *denops-obsidian-vim-ObsidianSync*
+                                            *denops-obsidian-vim-ObsidianSync*
+ObsidianSync
 
 Synchronizes the line number of the currently open buffer and the obsidan
 line number.
 NOTE:
 If you want to use this feature, please install `Obsidian Advanced URI` in
 your vault.
+
+
+                                           *denops-obsidian-vim-ObsidianToday*
+ObsidianToday [{number}]
+
+Open today's daily notes. Create and open the file if it does not exist.
+You can offset the date by passing number as an argument.
+
+e.g. ObsidianToday 1
+This will create a daily note for the next day.
+
+
+                                        *denops-obsidian-vim-ObsidianTomorrow*
+ObsidianTomorrow
+
+This command is a thin wrapper around |ObsidianToday|.
+Same ObsidianToday 1
+
+
+                                        *denops-obsidian-vim-ObsidianYesterday*
+ObsidianYesterday
+
+This command is a thin wrapper around |ObsidianToday|.
+Same ObsidianToday -1
 
 
 ==============================================================================

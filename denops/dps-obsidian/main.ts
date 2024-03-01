@@ -1,10 +1,19 @@
-import { Denops, fn, unknownutil as u, vars } from "./deps.ts";
-import { isInVault, openObsidian, syncObsidian } from "./common.ts";
+import { Denops, fn, fs, unknownutil as u, vars } from "./deps.ts";
+import {
+  getDailyNotePath,
+  isInVault,
+  openObsidian,
+  syncObsidian,
+} from "./common.ts";
+import { defaultAppCommandName, defaultDailyNoteFormat } from "./default.ts";
 
 export function main(denops: Denops) {
   const commands: string[] = [
     `command! -nargs=0 ObsidianOpen call denops#notify('${denops.name}', 'openObsidianApp', [{'notePath': expand('%:p')}])`,
     `command! -nargs=0 ObsidianSync call denops#notify('${denops.name}', 'syncObsidianApp', [{'notePath': expand('%:p')}])`,
+    `command! -nargs=? ObsidianToday call dps_obsidian#create_daily_note(<f-args>)`,
+    `command! -nargs=0 ObsidianTomorrow call denops#notify('${denops.name}', 'createDailyNote', [{'offset': 1}])`,
+    `command! -nargs=0 ObsidianYesterday call denops#notify('${denops.name}', 'createDailyNote', [{'offset': -1}])`,
   ];
 
   commands.map((cmd) => {
@@ -19,11 +28,11 @@ export function main(denops: Denops) {
       );
       const cmd = await vars.g.get(denops, "denops_obsidian_cmd") as
         | string
-        | null;
+        | null ?? defaultAppCommandName;
       if (!await isInVault(ensuredArgs.notePath)) {
         return;
       }
-      openObsidian(denops, ensuredArgs.notePath, cmd ?? "obsidian");
+      openObsidian(denops, ensuredArgs.notePath, cmd);
     },
     syncObsidianApp: async (args: unknown) => {
       const ensuredArgs = u.ensure(
@@ -32,7 +41,7 @@ export function main(denops: Denops) {
       );
       const cmd = await vars.g.get(denops, "denops_obsidian_cmd") as
         | string
-        | null;
+        | null ?? defaultAppCommandName;
       if (!await isInVault(ensuredArgs.notePath)) {
         return;
       }
@@ -41,8 +50,40 @@ export function main(denops: Denops) {
         denops,
         ensuredArgs.notePath,
         lineNr,
-        cmd ?? "obsidian",
+        cmd,
       );
+    },
+    createDailyNote: async (args: unknown) => {
+      const ensuredArgs = u.ensure(
+        args,
+        u.isOptionalOf(u.isObjectOf({ offset: u.isNumber })),
+      );
+      const fileNameFormat = await vars.g.get(
+        denops,
+        "denops_obsidian_daily_note_format",
+      ) as string | null ?? defaultDailyNoteFormat;
+      const dailyNoteDir = await vars.g.get(
+        denops,
+        "denops_obsidian_daily_note_dir",
+      ) as
+        | string
+        | null;
+      if (dailyNoteDir === null) {
+        console.error("denops_obsidian_daily_note_dir is not set.");
+        return;
+      }
+      const dailyNotePath = getDailyNotePath(
+        fileNameFormat,
+        dailyNoteDir,
+        ensuredArgs?.offset ?? 0,
+      );
+      if (await fs.exists(dailyNotePath)) {
+        await fn.execute(denops, `e ${dailyNotePath}`);
+      } else {
+        await Deno.writeTextFile(dailyNotePath, "");
+        console.log(`Created ${dailyNotePath}`);
+        await fn.execute(denops, `e ${dailyNotePath}`);
+      }
     },
   };
 }
