@@ -34,12 +34,7 @@ INTERFACE                                      *denops-obsidian-vim-interface*
 ------------------------------------------------------------------------------
 VARIABLES                                      *denops-obsidian-vim-variables*
 
-                                                     *g:denops_obsidian_vault*
-g:denops_obsidian_vault		(string)
-	Set this variable to your vault path.
-
-	Default: expand('~/obsidian')
-
+                                                       *g:denops_obsidian_cmd*
 g:denops_obsidian_cmd		(string)
 	Set this variable to a valid obsidian executable name.
 
@@ -52,15 +47,20 @@ COMMANDS                                         *denops-obsidian-vim-command*
 OpenObsidian                                *denops-obsidian-vim-OpenObsidian*
 
 Open the current buffer in obsidian.
-NOTE: Executes only when opening a file in the vault.
+NOTE:
+Executes only when opening a file in the vault.
+The plugin looks up the path of the open file and looks for the .obsidian
+directory. Use the directory where the .obsidian directory exists as the
+vault path.
 
 
 SyncObsidian                                *denops-obsidian-vim-SyncObsidian*
 
 Synchronizes the line number of the currently open buffer and the obsidan
 line number.
-NOTE: If you want to use this feature, please install
-`Obsidian Advanced URI` in your vault.
+NOTE:
+If you want to use this feature, please install `Obsidian Advanced URI` in
+your vault.
 
 
 ==============================================================================

@@ -21,12 +21,14 @@ https://vinzent03.github.io/obsidian-advanced-uri/
 ## Configuration
 
 ```vim
-" Set your vault path. Default: expand('~/obsidian')
-let g:denops_obsidian_vault = expand('~/zettelkasten')
-
 " Set the name of your obsidian command
 let g:denops_obsidian_cmd = 'obsidian'
 ```
+
+## Vault path resolution
+
+The plugin looks up the path of the open file and looks for the `.obsidian` directory.
+Use the directory where the `.obsidian` directory exists as the vault path.
 
 ## Commands
 
