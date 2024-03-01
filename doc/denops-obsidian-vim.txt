@@ -10,7 +10,8 @@ Install				|denops-obsidian-vim-install|
 Interface			|denops-obsidian-vim-interface|
 	Variables		|denops-obsidian-vim-variables|
 Command				|denops-obsidian-vim-command|
-	OpenObsidian		|denops-obsidian-vim-OpenObsidian|
+	ObsidianOpen		|denops-obsidian-vim-ObsidianOpen|
+	ObsidianSync		|denops-obsidian-vim-ObsidianSync|
 
 
 ==============================================================================
@@ -44,7 +45,7 @@ g:denops_obsidian_cmd		(string)
 ==============================================================================
 COMMANDS                                         *denops-obsidian-vim-command*
 
-OpenObsidian                                *denops-obsidian-vim-OpenObsidian*
+ObsidianOpen                                *denops-obsidian-vim-ObsidianOpen*
 
 Open the current buffer in obsidian.
 NOTE:
@@ -54,7 +55,7 @@ directory. Use the directory where the .obsidian directory exists as the
 vault path.
 
 
-SyncObsidian                                *denops-obsidian-vim-SyncObsidian*
+ObsidianSync                                *denops-obsidian-vim-ObsidianSync*
 
 Synchronizes the line number of the currently open buffer and the obsidan
 line number.

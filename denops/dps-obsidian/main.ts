@@ -3,8 +3,8 @@ import { isInVault, openObsidian, syncObsidian } from "./common.ts";
 
 export function main(denops: Denops) {
   const commands: string[] = [
-    `command! -nargs=0 OpenObsidian call denops#notify('${denops.name}', 'open:note:obsidian', [{'notePath': expand('%:p')}])`,
-    `command! -nargs=0 SyncObsidian call denops#notify('${denops.name}', 'sync:note:obsidian', [{'notePath': expand('%:p')}])`,
+    `command! -nargs=0 ObsidianOpen call denops#notify('${denops.name}', 'openObsidianApp', [{'notePath': expand('%:p')}])`,
+    `command! -nargs=0 ObsidianSync call denops#notify('${denops.name}', 'syncObsidianApp', [{'notePath': expand('%:p')}])`,
   ];
 
   commands.map((cmd) => {
@@ -12,7 +12,7 @@ export function main(denops: Denops) {
   });
   denops.dispatcher = {
     ...denops.dispatcher,
-    "open:note:obsidian": async (args: unknown) => {
+    openObsidianApp: async (args: unknown) => {
       const ensuredArgs = u.ensure(
         args,
         u.isObjectOf({ notePath: u.isString }),
@@ -25,7 +25,7 @@ export function main(denops: Denops) {
       }
       openObsidian(denops, ensuredArgs.notePath, cmd ?? "obsidian");
     },
-    "sync:note:obsidian": async (args: unknown) => {
+    syncObsidianApp: async (args: unknown) => {
       const ensuredArgs = u.ensure(
         args,
         u.isObjectOf({ notePath: u.isString }),
