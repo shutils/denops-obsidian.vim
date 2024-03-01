@@ -1,8 +1,12 @@
-import { Denops, helper, path } from "./deps.ts";
+import { Denops, fs, helper, path } from "./deps.ts";
 
-export function isInVault(filePath: string, vault: string) {
-  const common = path.common([filePath, vault]);
-  return vault == common || vault + path.SEPARATOR == common;
+export async function isInVault(filePath: string) {
+  try {
+    await searchVaultPath(filePath);
+  } catch {
+    return false;
+  }
+  return true;
 }
 
 export function openObsidian(denops: Denops, notePath: string, cmd?: string) {
@@ -27,14 +31,14 @@ export function openObsidian(denops: Denops, notePath: string, cmd?: string) {
   });
 }
 
-export function syncObsidian(
+export async function syncObsidian(
   _denops: Denops,
-  vault: string,
-  filePath: string,
+  notePath: string,
   lineNr: number,
   cmd?: string,
 ) {
-  const relativePath = path.relative(vault, filePath);
+  const vault = await searchVaultPath(notePath);
+  const relativePath = path.relative(vault, notePath);
   const filePathArray = relativePath.split(path.SEPARATOR);
   const baseUri = `obsidian://advanced-uri`;
   const params = new URLSearchParams({
@@ -54,4 +58,24 @@ export function syncObsidian(
   }).catch((e) => {
     console.error(decoder.decode(e));
   });
+}
+
+export async function searchVaultPath(notePath: string) {
+  let rootDir: string;
+  if (Deno.build.os === "windows") {
+    rootDir = "C:\\";
+  } else {
+    rootDir = "/";
+  }
+  let currentDir = path.parse(notePath).dir;
+  while (true) {
+    if (await fs.exists(path.join(currentDir, ".obsidian"))) {
+      return currentDir;
+    }
+    if (currentDir === rootDir) {
+      throw new Error("Not found in any parent directory");
+    }
+
+    currentDir = path.parse(currentDir).dir;
+  }
 }
