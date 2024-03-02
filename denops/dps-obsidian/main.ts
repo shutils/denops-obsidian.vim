@@ -11,6 +11,7 @@ import {
   defaultDailyNoteFormat,
   defaultNoteFormat,
 } from "./default.ts";
+import { renderTemplate } from "./template/main.ts";
 
 export function main(denops: Denops) {
   const commands: string[] = [
@@ -74,6 +75,18 @@ export function main(denops: Denops) {
       ) as
         | string
         | null;
+      const templatePath = await vars.g.get(
+        denops,
+        "denops_obsidian_daily_note_template",
+      ) as
+        | string
+        | null;
+      let content: string;
+      if (templatePath) {
+        content = renderTemplate(templatePath);
+      } else {
+        content = "";
+      }
       if (dailyNoteDir === null) {
         console.error("denops_obsidian_daily_note_dir is not set.");
         return;
@@ -86,7 +99,7 @@ export function main(denops: Denops) {
       if (await fs.exists(dailyNotePath)) {
         await fn.execute(denops, `e ${dailyNotePath}`);
       } else {
-        await Deno.writeTextFile(dailyNotePath, "");
+        await Deno.writeTextFile(dailyNotePath, content);
         console.log(`Created ${dailyNotePath}`);
         await fn.execute(denops, `e ${dailyNotePath}`);
       }
@@ -102,9 +115,21 @@ export function main(denops: Denops) {
       ) as
         | string
         | null;
+      const templatePath = await vars.g.get(
+        denops,
+        "denops_obsidian_note_template",
+      ) as
+        | string
+        | null;
       if (noteDir === null) {
         console.error("denops_obsidian_note_dir is not set.");
         return;
+      }
+      let content: string;
+      if (templatePath) {
+        content = renderTemplate(templatePath);
+      } else {
+        content = "";
       }
       let filePath: string;
       if (ensuredArgs) {
@@ -119,7 +144,7 @@ export function main(denops: Denops) {
       if (await fs.exists(filePath)) {
         await fn.execute(denops, `e ${filePath}`);
       } else {
-        await Deno.writeTextFile(filePath, "");
+        await Deno.writeTextFile(filePath, content);
         console.log(`Created ${filePath}`);
         await fn.execute(denops, `e ${filePath}`);
       }
