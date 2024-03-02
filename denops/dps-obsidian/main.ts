@@ -1,11 +1,16 @@
-import { Denops, fn, fs, unknownutil as u, vars } from "./deps.ts";
+import { Denops, fn, fs, path, unknownutil as u, vars } from "./deps.ts";
 import {
   getDailyNotePath,
+  getDatetimeNotePath,
   isInVault,
   openObsidian,
   syncObsidian,
 } from "./common.ts";
-import { defaultAppCommandName, defaultDailyNoteFormat } from "./default.ts";
+import {
+  defaultAppCommandName,
+  defaultDailyNoteFormat,
+  defaultNoteFormat,
+} from "./default.ts";
 
 export function main(denops: Denops) {
   const commands: string[] = [
@@ -14,6 +19,7 @@ export function main(denops: Denops) {
     `command! -nargs=? ObsidianToday call dps_obsidian#create_daily_note(<f-args>)`,
     `command! -nargs=0 ObsidianTomorrow call denops#notify('${denops.name}', 'createDailyNote', [{'offset': 1}])`,
     `command! -nargs=0 ObsidianYesterday call denops#notify('${denops.name}', 'createDailyNote', [{'offset': -1}])`,
+    `command! -nargs=? ObsidianNewNote call dps_obsidian#create_new_note(<f-args>)`,
   ];
 
   commands.map((cmd) => {
@@ -83,6 +89,39 @@ export function main(denops: Denops) {
         await Deno.writeTextFile(dailyNotePath, "");
         console.log(`Created ${dailyNotePath}`);
         await fn.execute(denops, `e ${dailyNotePath}`);
+      }
+    },
+    createNewNote: async (args: unknown) => {
+      const ensuredArgs = u.ensure(
+        args,
+        u.isOptionalOf(u.isObjectOf({ name: u.isString })),
+      );
+      const noteDir = await vars.g.get(
+        denops,
+        "denops_obsidian_note_dir",
+      ) as
+        | string
+        | null;
+      if (noteDir === null) {
+        console.error("denops_obsidian_note_dir is not set.");
+        return;
+      }
+      let filePath: string;
+      if (ensuredArgs) {
+        filePath = path.join(noteDir, `${ensuredArgs.name}.md`);
+      } else {
+        const fileNameFormat = await vars.g.get(
+          denops,
+          "denops_obsidian_note_format",
+        ) as string | null ?? defaultNoteFormat;
+        filePath = getDatetimeNotePath(fileNameFormat, noteDir);
+      }
+      if (await fs.exists(filePath)) {
+        await fn.execute(denops, `e ${filePath}`);
+      } else {
+        await Deno.writeTextFile(filePath, "");
+        console.log(`Created ${filePath}`);
+        await fn.execute(denops, `e ${filePath}`);
       }
     },
   };

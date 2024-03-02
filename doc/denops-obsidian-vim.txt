@@ -15,6 +15,7 @@ Command				|denops-obsidian-vim-command|
 	ObsidianToday		|denops-obsidian-vim-ObsidianOpen|
 	ObsidianTomorrow	|denops-obsidian-vim-ObsidianTomorrow|
 	ObsidianYesterday	|denops-obsidian-vim-ObsidianYesterday|
+	ObsidianNewNote		|denops-obsidian-vim-ObsidianNewNote|
 
 
 ==============================================================================
@@ -49,7 +50,7 @@ g:denops_obsidian_cmd			(string)
 g:denops_obsidian_daily_note_dir	(string)
 	Set the storage directory for your daily notes.
 	NOTE:
-	
+
 	Must be set when using |ObsidianToday|, |ObsidianTomorrow|, and
 	|ObsidianYesterday|.
 
@@ -61,6 +62,23 @@ g:denops_obsidian_daily_note_format	(string)
 	Set the file name format for your daily notes.
 
 	Default: "yyyy-MM-dd"
+
+
+                                                  *g:denops_obsidian_note_dir*
+g:denops_obsidian_note_dir		(string)
+	Set the storage directory for your notes.
+	NOTE:
+
+	Must be set when using |ObsidianNewNote|.
+
+	Default: v:null
+
+
+                                               *g:denops_obsidian_note_format*
+g:denops_obsidian_note_format		(string)
+	Set the file name format for your notes.
+
+	Default: "yyyyMMddHHmmss"
 
 
 ==============================================================================
@@ -88,7 +106,7 @@ your vault.
 
 
                                            *denops-obsidian-vim-ObsidianToday*
-ObsidianToday [{number}]
+ObsidianToday [{offset}]
 
 Open today's daily notes. Create and open the file if it does not exist.
 You can offset the date by passing number as an argument.
@@ -104,11 +122,25 @@ This command is a thin wrapper around |ObsidianToday|.
 Same ObsidianToday 1
 
 
-                                        *denops-obsidian-vim-ObsidianYesterday*
+                                       *denops-obsidian-vim-ObsidianYesterday*
 ObsidianYesterday
 
 This command is a thin wrapper around |ObsidianToday|.
 Same ObsidianToday -1
+
+
+                                         *denops-obsidian-vim-ObsidianNewNote*
+ObsidianNewNote [{name}]
+
+This command will create your new note.
+If you pass the name of the note as an argument, the note will be created
+ with the extension ".md" added.
+If no name is given as an argument, it will be automatically named according
+ to the value of |g:denops_obsidian_note_format|.
+If a note with the same name already exists, it will be opened.
+
+NOTE:
+|g:denops_obsidian_note_dir| must be set whenever you use this command.
 
 
 ==============================================================================
