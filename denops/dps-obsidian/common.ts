@@ -91,3 +91,14 @@ export function getDailyNotePath(
   ) + ".md";
   return path.join(directory, fileName);
 }
+
+export function getDatetimeNotePath(
+  fileFormat: string,
+  directory: string,
+) {
+  const fileName = datetime.format(
+    new Date(new Date().getTime()),
+    fileFormat,
+  ) + ".md";
+  return path.join(directory, fileName);
+}
