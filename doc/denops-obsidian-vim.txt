@@ -16,6 +16,8 @@ Command				|denops-obsidian-vim-command|
 	ObsidianTomorrow	|denops-obsidian-vim-ObsidianTomorrow|
 	ObsidianYesterday	|denops-obsidian-vim-ObsidianYesterday|
 	ObsidianNewNote		|denops-obsidian-vim-ObsidianNewNote|
+Spec				|denops-obsidian-vim-spec|
+	Template		|denops-obsidian-vim-template|
 
 
 ==============================================================================
@@ -50,7 +52,6 @@ g:denops_obsidian_cmd			(string)
 g:denops_obsidian_daily_note_dir	(string)
 	Set the storage directory for your daily notes.
 	NOTE:
-
 	Must be set when using |ObsidianToday|, |ObsidianTomorrow|, and
 	|ObsidianYesterday|.
 
@@ -68,7 +69,6 @@ g:denops_obsidian_daily_note_format	(string)
 g:denops_obsidian_note_dir		(string)
 	Set the storage directory for your notes.
 	NOTE:
-
 	Must be set when using |ObsidianNewNote|.
 
 	Default: v:null
@@ -79,6 +79,29 @@ g:denops_obsidian_note_format		(string)
 	Set the file name format for your notes.
 
 	Default: "yyyyMMddHHmmss"
+
+
+                                              *g:denops_obsidian_template_dir*
+g:denops_obsidian_template_dir		(string)
+	Set the directory path to store note templates.
+	NOTE:
+	Must be specified when using a template.
+
+	Default: v:null
+
+
+                                             *g:denops_obsidian_note_template*
+g:denops_obsidian_note_template		(string)
+	Set the default note template.
+
+	Default: v:null
+
+
+                                       *g:denops_obsidian_daily_note_template*
+g:denops_obsidian_daily_note_template		(string)
+	Set the default daily note template.
+
+	Default: v:null
 
 
 ==============================================================================
@@ -130,7 +153,7 @@ Same ObsidianToday -1
 
 
                                          *denops-obsidian-vim-ObsidianNewNote*
-ObsidianNewNote [{name}]
+ObsidianNewNote [{flags}] [{name}]
 
 This command will create your new note.
 If you pass the name of the note as an argument, the note will be created
@@ -139,8 +162,36 @@ If no name is given as an argument, it will be automatically named according
  to the value of |g:denops_obsidian_note_format|.
 If a note with the same name already exists, it will be opened.
 
+	flags:
+
+	--template={template} " relative path from vault
+
 NOTE:
 |g:denops_obsidian_note_dir| must be set whenever you use this command.
+
+
+==============================================================================
+SPEC                                                *denops-obsidian-vim-spec*
+
+------------------------------------------------------------------------------
+TEMPLATE                                      *denops-obsidian-vim-template*
+
+The template for this plugin is provided by |eta| and |deno_std_datetime|.
+
+Please check the URL below when using.
+https://eta.js.org/
+https://deno.land/std/datetime/mod.ts
+
+	example:
+	The example below is a template for entering the current time.
+
+>
+	Today is <%= it.datetime.format(new Date(), "yyyy-MM-dd") %>.
+<
+	This template will be converted as follows:
+>
+	Today is 2024-03-04.
+<
 
 
 ==============================================================================

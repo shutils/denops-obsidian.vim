@@ -1,4 +1,12 @@
-import { Denops, fn, fs, path, unknownutil as u, vars } from "./deps.ts";
+import {
+  argument,
+  Denops,
+  fn,
+  fs,
+  path,
+  unknownutil as u,
+  vars,
+} from "./deps.ts";
 import {
   getDailyNotePath,
   getDatetimeNotePath,
@@ -20,7 +28,7 @@ export function main(denops: Denops) {
     `command! -nargs=? ObsidianToday call dps_obsidian#create_daily_note(<f-args>)`,
     `command! -nargs=0 ObsidianTomorrow call denops#notify('${denops.name}', 'createDailyNote', [{'offset': 1}])`,
     `command! -nargs=0 ObsidianYesterday call denops#notify('${denops.name}', 'createDailyNote', [{'offset': -1}])`,
-    `command! -nargs=? ObsidianNewNote call dps_obsidian#create_new_note(<f-args>)`,
+    `command! -nargs=* -complete=customlist,dps_obsidian#get_new_note_complete ObsidianNewNote call denops#notify('${denops.name}', 'createNewNote', [[<f-args>]])`,
   ];
 
   commands.map((cmd) => {
@@ -105,35 +113,54 @@ export function main(denops: Denops) {
       }
     },
     createNewNote: async (args: unknown) => {
-      const ensuredArgs = u.ensure(
-        args,
-        u.isOptionalOf(u.isObjectOf({ name: u.isString })),
-      );
+      const [_, flags, residues] = argument.parse(args as string[]);
+      console.log(argument.parse(args as string[]));
+      let name: string | undefined;
+      name = residues.join(" ");
+      if (name === "") {
+        name = undefined;
+      }
       const noteDir = await vars.g.get(
         denops,
         "denops_obsidian_note_dir",
       ) as
         | string
         | null;
-      const templatePath = await vars.g.get(
-        denops,
-        "denops_obsidian_note_template",
-      ) as
-        | string
-        | null;
+      let templatePath: string | null;
+      if (u.isObjectOf({ template: u.isString })(flags)) {
+        const templateDir = await vars.g.get(
+          denops,
+          "denops_obsidian_template_dir",
+        ) as
+          | string
+          | null;
+        if (templateDir === null) {
+          console.error("denops_obsidian_template_dir is not set.");
+          return;
+        }
+        templatePath = path.join(templateDir, flags.template as string);
+      } else {
+        templatePath = await vars.g.get(
+          denops,
+          "denops_obsidian_note_template",
+        ) as
+          | string
+          | null;
+      }
       if (noteDir === null) {
         console.error("denops_obsidian_note_dir is not set.");
         return;
       }
       let content: string;
+      console.log(templatePath);
       if (templatePath) {
         content = renderTemplate(templatePath);
       } else {
         content = "";
       }
       let filePath: string;
-      if (ensuredArgs) {
-        filePath = path.join(noteDir, `${ensuredArgs.name}.md`);
+      if (name !== undefined) {
+        filePath = path.join(noteDir, `${name}.md`);
       } else {
         const fileNameFormat = await vars.g.get(
           denops,
