@@ -1,4 +1,4 @@
-import { Denops, fs, helper, path } from "./deps.ts";
+import { datetime, Denops, fs, helper, path } from "./deps.ts";
 
 export async function isInVault(filePath: string) {
   try {
@@ -78,4 +78,27 @@ export async function searchVaultPath(notePath: string) {
 
     currentDir = path.parse(currentDir).dir;
   }
+}
+
+export function getDailyNotePath(
+  fileFormat: string,
+  directory: string,
+  offset = 0,
+) {
+  const fileName = datetime.format(
+    new Date(new Date().getTime() + datetime.DAY * offset),
+    fileFormat,
+  ) + ".md";
+  return path.join(directory, fileName);
+}
+
+export function getDatetimeNotePath(
+  fileFormat: string,
+  directory: string,
+) {
+  const fileName = datetime.format(
+    new Date(new Date().getTime()),
+    fileFormat,
+  ) + ".md";
+  return path.join(directory, fileName);
 }
