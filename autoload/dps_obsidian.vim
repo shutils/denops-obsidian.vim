@@ -31,3 +31,14 @@ function! dps_obsidian#get_rel_paths(read) abort
   let s:templates = globpath(s:dir, "**/*.md", 0, 1)
   return map(s:templates, {_, v -> substitute(v, escape(s:dir, "/") . "/", a:read, "")})
 endfunction
+
+function! dps_obsidian#setup(...) abort
+  if denops#plugin#is_loaded("dps-obsidian")
+    call denops#notify("dps-obsidian", "setup", [a:000])
+  else
+    augroup dps_obsidian
+      autocmd!
+      execute "autocmd User DenopsPluginPost:dps-obsidian ++once call denops#notify('dps-obsidian', 'setup', " . string(a:000) . ")"
+    augroup END
+  endif
+endfunction
