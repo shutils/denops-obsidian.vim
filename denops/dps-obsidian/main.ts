@@ -1,33 +1,33 @@
-import {
-  argument,
-  Denops,
-  fn,
-  fs,
-  path,
-  unknownutil as u,
-  vars,
-} from "./deps.ts";
+import { argument, Denops, fn, path, unknownutil as u, vars } from "./deps.ts";
 import {
   getDailyNotePath,
   getDatetimeNotePath,
   isInVault,
+  openNote,
   openObsidian,
   syncObsidian,
 } from "./common.ts";
-import {
-  defaultAppCommandName,
-  defaultDailyNoteFormat,
-  defaultNoteFormat,
-} from "./default.ts";
+import { defaultAppCommandName } from "./default.ts";
 import { renderTemplate } from "./template/main.ts";
+import { loadConfig, validateConfig } from "./config.ts";
+import { strToNum } from "./util.ts";
+import {
+  getDailyNoteDirPath,
+  getDailyNoteNameFormat,
+  getNoteDirPath,
+  getNoteNameFormat,
+  getTemplatePath,
+  getVaultConfig,
+  isTemplateUsed,
+} from "./helper.ts";
 
 export function main(denops: Denops) {
   const commands: string[] = [
     `command! -nargs=0 ObsidianOpen call denops#notify('${denops.name}', 'openObsidianApp', [{'notePath': expand('%:p')}])`,
     `command! -nargs=0 ObsidianSync call denops#notify('${denops.name}', 'syncObsidianApp', [{'notePath': expand('%:p')}])`,
-    `command! -nargs=? ObsidianToday call dps_obsidian#create_daily_note(<f-args>)`,
-    `command! -nargs=0 ObsidianTomorrow call denops#notify('${denops.name}', 'createDailyNote', [{'offset': 1}])`,
-    `command! -nargs=0 ObsidianYesterday call denops#notify('${denops.name}', 'createDailyNote', [{'offset': -1}])`,
+    `command! -nargs=? ObsidianToday call denops#notify('${denops.name}', 'createDailyNote', [[<f-args>]])`,
+    `command! -nargs=0 ObsidianTomorrow call denops#notify('${denops.name}', 'createDailyNote', [["--offset=1"]])`,
+    `command! -nargs=0 ObsidianYesterday call denops#notify('${denops.name}', 'createDailyNote', [["--offset=-1"]])`,
     `command! -nargs=* -complete=customlist,dps_obsidian#get_new_note_complete ObsidianNewNote call denops#notify('${denops.name}', 'createNewNote', [[<f-args>]])`,
   ];
 
@@ -37,26 +37,27 @@ export function main(denops: Denops) {
   denops.dispatcher = {
     ...denops.dispatcher,
     openObsidianApp: async (args: unknown) => {
+      const config = await loadConfig(denops);
       const ensuredArgs = u.ensure(
         args,
         u.isObjectOf({ notePath: u.isString }),
       );
-      const cmd = await vars.g.get(denops, "denops_obsidian_cmd") as
-        | string
-        | null ?? defaultAppCommandName;
       if (!await isInVault(ensuredArgs.notePath)) {
         return;
       }
-      openObsidian(denops, ensuredArgs.notePath, cmd);
+      openObsidian(
+        denops,
+        ensuredArgs.notePath,
+        config.cmd ?? defaultAppCommandName,
+      );
     },
+
     syncObsidianApp: async (args: unknown) => {
+      const config = await loadConfig(denops);
       const ensuredArgs = u.ensure(
         args,
         u.isObjectOf({ notePath: u.isString }),
       );
-      const cmd = await vars.g.get(denops, "denops_obsidian_cmd") as
-        | string
-        | null ?? defaultAppCommandName;
       if (!await isInVault(ensuredArgs.notePath)) {
         return;
       }
@@ -65,116 +66,73 @@ export function main(denops: Denops) {
         denops,
         ensuredArgs.notePath,
         lineNr,
-        cmd,
+        config.cmd ?? defaultAppCommandName,
       );
     },
+
     createDailyNote: async (args: unknown) => {
-      const ensuredArgs = u.ensure(
-        args,
-        u.isOptionalOf(u.isObjectOf({ offset: u.isNumber })),
+      const [_, flags] = argument.parse(args as string[]);
+      const config = await loadConfig(denops);
+      const ensuredFlags = u.ensure(
+        flags,
+        u.isObjectOf({
+          offset: u.isOptionalOf(u.isString),
+          vault: u.isOptionalOf(u.isString),
+        }),
       );
-      const fileNameFormat = await vars.g.get(
-        denops,
-        "denops_obsidian_daily_note_format",
-      ) as string | null ?? defaultDailyNoteFormat;
-      const dailyNoteDir = await vars.g.get(
-        denops,
-        "denops_obsidian_daily_note_dir",
-      ) as
-        | string
-        | null;
-      const templatePath = await vars.g.get(
-        denops,
-        "denops_obsidian_daily_note_template",
-      ) as
-        | string
-        | null;
+      const vaultConfig = getVaultConfig(config, ensuredFlags?.vault);
+      const offset = strToNum(ensuredFlags?.offset ?? "0");
+      const fileNameFormat = getDailyNoteNameFormat(vaultConfig);
+      const dailyNoteDir = getDailyNoteDirPath(vaultConfig);
       let content: string;
-      if (templatePath) {
+      if (isTemplateUsed(vaultConfig, flags, true)) {
+        const templatePath = getTemplatePath(vaultConfig, flags, true);
         content = renderTemplate(templatePath);
       } else {
         content = "";
       }
-      if (dailyNoteDir === null) {
-        console.error("denops_obsidian_daily_note_dir is not set.");
-        return;
-      }
       const dailyNotePath = getDailyNotePath(
         fileNameFormat,
         dailyNoteDir,
-        ensuredArgs?.offset ?? 0,
+        offset,
       );
-      if (await fs.exists(dailyNotePath)) {
-        await fn.execute(denops, `e ${dailyNotePath}`);
-      } else {
-        await Deno.writeTextFile(dailyNotePath, content);
-        console.log(`Created ${dailyNotePath}`);
-        await fn.execute(denops, `e ${dailyNotePath}`);
-      }
+      openNote(denops, dailyNotePath, content);
     },
+
     createNewNote: async (args: unknown) => {
+      const config = await loadConfig(denops);
       const [_, flags, residues] = argument.parse(args as string[]);
-      console.log(argument.parse(args as string[]));
+      const ensuredFlags = u.ensure(
+        flags,
+        u.isObjectOf({ vault: u.isOptionalOf(u.isString) }),
+      );
+      const vaultConfig = getVaultConfig(config, ensuredFlags?.vault);
       let name: string | undefined;
       name = residues.join(" ");
       if (name === "") {
         name = undefined;
       }
-      const noteDir = await vars.g.get(
-        denops,
-        "denops_obsidian_note_dir",
-      ) as
-        | string
-        | null;
-      let templatePath: string | null;
-      if (u.isObjectOf({ template: u.isString })(flags)) {
-        const templateDir = await vars.g.get(
-          denops,
-          "denops_obsidian_template_dir",
-        ) as
-          | string
-          | null;
-        if (templateDir === null) {
-          console.error("denops_obsidian_template_dir is not set.");
-          return;
-        }
-        templatePath = path.join(templateDir, flags.template as string);
-      } else {
-        templatePath = await vars.g.get(
-          denops,
-          "denops_obsidian_note_template",
-        ) as
-          | string
-          | null;
-      }
-      if (noteDir === null) {
-        console.error("denops_obsidian_note_dir is not set.");
-        return;
-      }
       let content: string;
-      console.log(templatePath);
-      if (templatePath) {
+      if (isTemplateUsed(config.vaults[0], flags, false)) {
+        const templatePath = getTemplatePath(config.vaults[0], flags, false);
         content = renderTemplate(templatePath);
       } else {
         content = "";
       }
+      const noteDir = getNoteDirPath(vaultConfig);
       let filePath: string;
       if (name !== undefined) {
         filePath = path.join(noteDir, `${name}.md`);
       } else {
-        const fileNameFormat = await vars.g.get(
-          denops,
-          "denops_obsidian_note_format",
-        ) as string | null ?? defaultNoteFormat;
+        const fileNameFormat = getNoteNameFormat(vaultConfig);
         filePath = getDatetimeNotePath(fileNameFormat, noteDir);
       }
-      if (await fs.exists(filePath)) {
-        await fn.execute(denops, `e ${filePath}`);
-      } else {
-        await Deno.writeTextFile(filePath, content);
-        console.log(`Created ${filePath}`);
-        await fn.execute(denops, `e ${filePath}`);
-      }
+      openNote(denops, filePath, content);
+    },
+
+    setup: async (args: unknown) => {
+      const config = validateConfig(args);
+      await vars.g.set(denops, "denops_obsidian_config", config);
     },
   };
 }

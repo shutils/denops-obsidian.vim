@@ -1,4 +1,4 @@
-import { datetime, Denops, fs, helper, path } from "./deps.ts";
+import { datetime, Denops, fn, fs, helper, path } from "./deps.ts";
 
 export async function isInVault(filePath: string) {
   try {
@@ -101,4 +101,18 @@ export function getDatetimeNotePath(
     fileFormat,
   ) + ".md";
   return path.join(directory, fileName);
+}
+
+export async function openNote(
+  denops: Denops,
+  notePath: string,
+  content?: string,
+) {
+  if (await fs.exists(notePath)) {
+    await fn.execute(denops, `e ${notePath}`);
+  } else {
+    await Deno.writeTextFile(notePath, content ?? "");
+    console.log(`Created ${notePath}`);
+    await fn.execute(denops, `e ${notePath}`);
+  }
 }

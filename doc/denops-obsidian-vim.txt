@@ -8,7 +8,7 @@ CONTENTS                                        *denops-obsidian-vim-contents*
 Introduction			|denops-obsidian-vim-introduction|
 Install				|denops-obsidian-vim-install|
 Interface			|denops-obsidian-vim-interface|
-	Variables		|denops-obsidian-vim-variables|
+	Setup			|denops-obsidian-vim-setup|
 Command				|denops-obsidian-vim-command|
 	ObsidianOpen		|denops-obsidian-vim-ObsidianOpen|
 	ObsidianSync		|denops-obsidian-vim-ObsidianSync|
@@ -39,69 +39,56 @@ https://obsidian.md/
 INTERFACE                                      *denops-obsidian-vim-interface*
 
 ------------------------------------------------------------------------------
-VARIABLES                                      *denops-obsidian-vim-variables*
+SETUP                                              *denops-obsidian-vim-setup*
 
-                                                       *g:denops_obsidian_cmd*
-g:denops_obsidian_cmd			(string)
-	Set this variable to a valid obsidian executable name.
+                                                       *dps_obsidian#setup()*
+dps_obsidian#setup({ dict })
+	Set up the plugin. Please see below for the arguments.
 
-	Default: "obsidian"
+	Args:
+	The arguments are expressed in typescript as follows.
+	NOTE: I'll add more details at a later date.
 
+	{
+	  cmd?: string,
+	  vaults: {
+	    name: string,
+	    path: string,
+	    note?: {
+	      dir?: string,
+	      file_name_format?: string,
+	      template?: string
+	    },
+	    daily_note?: {
+	      dir?: string,
+	      file_name_format?: string,
+	      template?: string,
+	    },
+	    template_dir?: string,
+	  }[]
+	  default_vault?: string,
+	}
 
-                                            *g:denops_obsidian_daily_note_dir*
-g:denops_obsidian_daily_note_dir	(string)
-	Set the storage directory for your daily notes.
-	NOTE:
-	Must be set when using |ObsidianToday|, |ObsidianTomorrow|, and
-	|ObsidianYesterday|.
-
-	Default: v:null
-
-
-                                         *g:denops_obsidian_daily_note_format*
-g:denops_obsidian_daily_note_format	(string)
-	Set the file name format for your daily notes.
-
-	Default: "yyyy-MM-dd"
-
-
-                                                  *g:denops_obsidian_note_dir*
-g:denops_obsidian_note_dir		(string)
-	Set the storage directory for your notes.
-	NOTE:
-	Must be set when using |ObsidianNewNote|.
-
-	Default: v:null
-
-
-                                               *g:denops_obsidian_note_format*
-g:denops_obsidian_note_format		(string)
-	Set the file name format for your notes.
-
-	Default: "yyyyMMddHHmmss"
-
-
-                                              *g:denops_obsidian_template_dir*
-g:denops_obsidian_template_dir		(string)
-	Set the directory path to store note templates.
-	NOTE:
-	Must be specified when using a template.
-
-	Default: v:null
-
-
-                                             *g:denops_obsidian_note_template*
-g:denops_obsidian_note_template		(string)
-	Set the default note template.
-
-	Default: v:null
-
-
-                                       *g:denops_obsidian_daily_note_template*
-g:denops_obsidian_daily_note_template		(string)
-	Set the default daily note template.
-
-	Default: v:null
+	Example:
+	An example setting is shown below.
+>
+	call dps_obsidian#setup(#{
+	  /   cmd: 'obsidian',
+	  /   vaults: #{
+	  /     name: 'private',
+	  /     path: expand('~/obsidian/private'),
+	  /     note: #{
+	  /       dir: 'notes',
+	  /       template: 'default.md',
+	  /     },
+	  /     daily_note: #{
+	  /       dir: 'notes/daily',
+	  /       template: 'daily.md',
+	  /     },
+	  /     template_dir: 'config/template',
+	  /   },
+	  / })
+<
 
 
 ==============================================================================
