@@ -69,7 +69,15 @@ export function getTemplatePath(
   }
 }
 
-export function getVaultConfig(config: Config, vaultName: string | undefined){
+export function getVaultConfig(config: Config, vaultName: string | undefined) {
   return config.vaults.find((vault) => vault.name === vaultName) ??
     config.vaults[0];
-};
+}
+
+export function getVaultsNames(config: Config) {
+  const names: string[] = [];
+  config.vaults.map((vault) => {
+    names.push(vault.name);
+  });
+  return names;
+}
