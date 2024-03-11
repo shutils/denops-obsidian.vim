@@ -116,27 +116,38 @@ your vault.
 
 
                                            *denops-obsidian-vim-ObsidianToday*
-ObsidianToday [{offset}]
+ObsidianToday [{flags}]
 
 Open today's daily notes. Create and open the file if it does not exist.
 You can offset the date by passing number as an argument.
+This command accepts flags. The details are as follows.
 
-e.g. ObsidianToday 1
-This will create a daily note for the next day.
+	flags:
+
+	--vault={vault} " your vault name
+	--template={template} " relative path from vault
+	--offset={offset} " date offset
+
+You can get completion by typing `--` and pressing the Tab key.
+In addition, some flags display completion when you press the Tab key
+after `=`.
+
+e.g. ObsidianToday --offset=1
+This will create or open a daily note for the next day.
 
 
                                         *denops-obsidian-vim-ObsidianTomorrow*
 ObsidianTomorrow
 
 This command is a thin wrapper around |ObsidianToday|.
-Same ObsidianToday 1
+Same ObsidianToday --offset=1
 
 
                                        *denops-obsidian-vim-ObsidianYesterday*
 ObsidianYesterday
 
 This command is a thin wrapper around |ObsidianToday|.
-Same ObsidianToday -1
+Same ObsidianToday --offset=-1
 
 
                                          *denops-obsidian-vim-ObsidianNewNote*
@@ -148,9 +159,11 @@ If you pass the name of the note as an argument, the note will be created
 If no name is given as an argument, it will be automatically named according
  to the value of |g:denops_obsidian_note_format|.
 If a note with the same name already exists, it will be opened.
+See |denops-obsidian-vim-ObsidianToday| for flags.
 
 	flags:
 
+	--vault={vault} " your vault name
 	--template={template} " relative path from vault
 
 NOTE:

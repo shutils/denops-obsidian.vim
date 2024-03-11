@@ -20,12 +20,13 @@ import {
   getVaultConfig,
   isTemplateUsed,
 } from "./helper.ts";
+import { main as mainCmp } from "./complete/main.ts";
 
 export function main(denops: Denops) {
   const commands: string[] = [
     `command! -nargs=0 ObsidianOpen call denops#notify('${denops.name}', 'openObsidianApp', [{'notePath': expand('%:p')}])`,
     `command! -nargs=0 ObsidianSync call denops#notify('${denops.name}', 'syncObsidianApp', [{'notePath': expand('%:p')}])`,
-    `command! -nargs=? ObsidianToday call denops#notify('${denops.name}', 'createDailyNote', [[<f-args>]])`,
+    `command! -nargs=* -complete=customlist,dps_obsidian#get_daily_note_complete ObsidianToday call denops#notify('${denops.name}', 'createDailyNote', [[<f-args>]])`,
     `command! -nargs=0 ObsidianTomorrow call denops#notify('${denops.name}', 'createDailyNote', [["--offset=1"]])`,
     `command! -nargs=0 ObsidianYesterday call denops#notify('${denops.name}', 'createDailyNote', [["--offset=-1"]])`,
     `command! -nargs=* -complete=customlist,dps_obsidian#get_new_note_complete ObsidianNewNote call denops#notify('${denops.name}', 'createNewNote', [[<f-args>]])`,
@@ -78,6 +79,8 @@ export function main(denops: Denops) {
         u.isObjectOf({
           offset: u.isOptionalOf(u.isString),
           vault: u.isOptionalOf(u.isString),
+          template: u.isOptionalOf(u.isString),
+          ...u.isUnknown,
         }),
       );
       const vaultConfig = getVaultConfig(config, ensuredFlags?.vault);
@@ -104,7 +107,11 @@ export function main(denops: Denops) {
       const [_, flags, residues] = argument.parse(args as string[]);
       const ensuredFlags = u.ensure(
         flags,
-        u.isObjectOf({ vault: u.isOptionalOf(u.isString) }),
+        u.isObjectOf({
+          vault: u.isOptionalOf(u.isString),
+          template: u.isOptionalOf(u.isString),
+          ...u.isUnknown,
+        }),
       );
       const vaultConfig = getVaultConfig(config, ensuredFlags?.vault);
       let name: string | undefined;
@@ -135,4 +142,5 @@ export function main(denops: Denops) {
       await vars.g.set(denops, "denops_obsidian_config", config);
     },
   };
+  mainCmp(denops);
 }
